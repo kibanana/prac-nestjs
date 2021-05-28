@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Header,
   HttpCode,
@@ -8,7 +9,7 @@ import {
   Post,
   Redirect,
 } from '@nestjs/common';
-import { UserDto } from './dto/user.dto';
+import { User } from './domain/User';
 import { UserService } from './user.service';
 
 @Controller('users')
@@ -19,27 +20,49 @@ export class UserController {
   }
 
   @Get()
-  findAll(): Promise<any[]> {
-    return this.userService.findAll();
+  // eslint-disable-next-line @typescript-eslint/ban-types
+  async findAll(): Promise<object> {
+    const list = await this.userService.findAll();
+    return {
+      message: 'success',
+      data: list,
+    };
   }
 
   @Get(':id')
   // eslint-disable-next-line @typescript-eslint/ban-types
-  findOne(@Param('id') id: string): UserDto | object {
-    const repsonse = this.userService.findOne(id) || { message: 'fail' };
-    return repsonse;
+  async findOne(@Param('id') id: string): Promise<object> {
+    const item = await this.userService.findOne(id);
+    return item
+      ? {
+          message: 'success',
+          data: item,
+        }
+      : {
+          message: 'fail',
+        };
   }
 
   @Post()
   @HttpCode(201)
   @Header('Cache-Control', 'none')
   @Redirect('<https://www.naver.com>', 301)
-  save(@Body() user: UserDto): string {
-    this.userService.save(user);
-    return Object.assign({
-      statusCode: 201,
+  // eslint-disable-next-line @typescript-eslint/ban-types
+  async save(@Body() user: User): Promise<object> {
+    await this.userService.save(user);
+    return {
+      message: 'success',
       data: user,
-      message: 'Created successfully',
-    });
+    };
+  }
+
+  @Delete(':id')
+  // eslint-disable-next-line @typescript-eslint/ban-types
+  async delete(@Param('id') id: string): Promise<object> {
+    await this.userService.delete(id);
+    return {
+      message: 'success',
+      data: { userId: id },
+    };
   }
 }
